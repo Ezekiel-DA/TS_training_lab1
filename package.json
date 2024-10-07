@@ -1,0 +1,14 @@
+{
+  "name": "lab1_nlv",
+  "version": "1.0.0",
+  "description": "TS_training_lab1",
+  "main": "main.mjs",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "NLV",
+  "license": "ISC",
+  "dependencies": {
+    "@inquirer/prompts": "^7.0.0"
+  }
+}

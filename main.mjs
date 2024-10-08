@@ -5,7 +5,7 @@ import Library from './src/Library.mjs'
 
 const LIBRARY_FILE = './lab1_library_file.json'
 
-async function addBook(library) {
+async function promptForNewBook(library) {
   const title = await input({ message: 'Title?' })
   const author = await input({ message: 'Author?' })
   const date = await input({ message: 'Publication year?' })
@@ -14,7 +14,7 @@ async function addBook(library) {
   return library.addMedia(new Book(title, author, date, pages))
 }
 
-async function addMovie(library) {
+async function promptForNewMovie(library) {
   const title = await input({ message: 'Title?' })
   const author = await input({ message: 'Director?' })
   const date = await input({ message: 'Release year?' })
@@ -23,7 +23,7 @@ async function addMovie(library) {
   return library.addMedia(new Movie(title, author, date, runtime))
 }
 
-async function findMedia(library) {
+async function promptForMediaToFind(library) {
   const findBy = await select({
     message: 'Find by:',
     choices: [ { name: 'Title', value: 'title', description: 'Title'}, { name: 'Author', value: 'author', description: 'Author / Director'} ]
@@ -39,14 +39,18 @@ async function findMedia(library) {
   return res
 }
 
+async function promptForMediaToDelete(library) {
+  const mediaToDelete = await promptForMediaToFind(library)
+  console.log(`Deleting ${JSON.stringify(mediaToDelete)}`)
+  const confirmDeletion = await confirm({ message: 'Delete?' })
+  if (confirmDeletion) {
+    await library.removeMedia(mediaToDelete)
+  }
+}
+
 async function main() {
-  const lib = new Library()
-
-  await lib.load(LIBRARY_FILE)
-
-  // lib.addMedia(new Book('The Lord of the Rings', 'J.R.R. Tolkien', 1954, 1077))
-  // lib.addMedia(new Book('Dune', 'Frank Herbert', 1965, 896))
-  // lib.addMedia(new Movie('Alien', 'Ridley Scott', 1979, 116))
+  const lib = new Library(LIBRARY_FILE)
+  await lib.load()
 
   let action
 
@@ -65,22 +69,17 @@ async function main() {
   
     switch (action) {
       case 'addBook':
-        await addBook(lib)
+        await promptForNewBook(lib)
         break
       case 'addMovie':
-        await addMovie(lib)
+        await promptForNewMovie(lib)
         break
       case 'findMedia':
-        const foundMedia = await findMedia(lib)
+        const foundMedia = await promptForMediaToFind(lib)
         console.log(foundMedia)
         break
       case 'delMedia':
-        const mediaToDelete = await findMedia(lib)
-        console.log(`Deleting ${JSON.stringify(mediaToDelete)}`)
-        const confirmDeletion = await confirm({ message: 'Delete?' })
-        if (confirmDeletion) {
-          lib.removeMedia(mediaToDelete)
-        }
+        await promptForMediaToDelete(lib)
       case 'show':
         console.log(lib)
         break
@@ -88,8 +87,6 @@ async function main() {
         // noop
     }
   }
-  
-  lib.save(LIBRARY_FILE)
 }
 
 await main()

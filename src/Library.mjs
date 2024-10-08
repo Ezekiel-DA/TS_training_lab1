@@ -2,25 +2,40 @@ import { writeFile, readFile } from 'fs/promises'
 
 import { Media } from './media.mjs'
 
+async function saveLibrary(library) {
+  const json = JSON.stringify(library.medias)
+  return writeFile(library.filepath, json)
+}
+
+async function loadLibrary(library) {
+  const contents = await readFile(library.filepath, 'utf8')
+  const libContents = JSON.parse(contents)
+  library.medias = libContents
+}
+
 export default class Library {
-  constructor() {
+  constructor(libraryFilePath) {
     this.medias = []
-    this.dirty = false
+    this.filepath = libraryFilePath
   }
 
-  addMedia(media) {
+  async load() {
+    return loadLibrary(this)
+  }
+
+  async addMedia(media) {
     this.medias.push(media)
-    this.dirty = true
+    return saveLibrary(this)
   }
 
-  removeMedia(media) {
+  async removeMedia(media) {
     const idx = this.medias.findIndex(entry => entry === media)
     if (idx === -1) {
       console.log(`[W] media ${JSON.stringify(media)} not found, nothing to remove}`)
       return
     }
     this.medias.splice(idx, 1)
-    this.dirty = true
+    return saveLibrary(this)
   }
 
   findMedia(query) {
@@ -35,21 +50,5 @@ export default class Library {
         return media.author === query.author
       }
     })
-  }
-
-  async save(filepath) {
-    if (!this.dirty) {
-      console.log(`[I] Skipping save; library unchanged`)
-    }
-    const json = JSON.stringify(this.medias)
-    this.dirty = false
-    return writeFile(filepath, json)
-  }
-
-  async load(filepath) {
-    const contents = await readFile(filepath, 'utf8')
-    const libContents = JSON.parse(contents)
-    this.medias = libContents
-    this.dirty = false
   }
 }
